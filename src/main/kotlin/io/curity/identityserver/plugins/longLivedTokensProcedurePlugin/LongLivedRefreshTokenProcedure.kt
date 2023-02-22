@@ -15,6 +15,7 @@
  */
 package io.curity.identityserver.plugins.longLivedTokensProcedurePlugin
 
+import se.curity.identityserver.sdk.attribute.Attribute
 import se.curity.identityserver.sdk.attribute.token.AccessTokenAttributes
 import se.curity.identityserver.sdk.attribute.token.IdTokenAttributes
 import se.curity.identityserver.sdk.procedure.token.RefreshTokenProcedure
@@ -43,16 +44,21 @@ class LongLivedRefreshTokenProcedure(private val configuration: LongLivedTokensP
             accessTokenData
         }
 
+        val accessToken = pluginContext.accessTokenIssuer.issue(finalAccessTokenData, pluginContext.delegation)
         val responseMap = mutableMapOf<String, Any>(
             "scope" to pluginContext.scope,
-            "access_token" to pluginContext.accessTokenIssuer.issue(finalAccessTokenData, pluginContext.delegation),
+            "access_token" to accessToken,
             "token_type" to "bearer",
             "expires_in" to Duration.ofSeconds(finalAccessTokenData.expires.epochSecond - Instant.now().epochSecond).seconds,
             "refresh_token" to pluginContext.refreshTokenIssuer.issue(pluginContext.defaultRefreshTokenData, pluginContext.delegation)
         )
 
         if (shouldIssueIDToken) {
-            responseMap["id_token"] = pluginContext.idTokenIssuer.issue(IdTokenAttributes.of(pluginContext.getDefaultData("id_token")))
+            val idTokenIssuer = pluginContext.idTokenIssuer
+            val idTokenData = pluginContext
+                .getDefaultData("id_token")
+                .with(Attribute.of("at_hash", idTokenIssuer.atHash(accessToken)))
+            responseMap["id_token"] = idTokenIssuer.issue(IdTokenAttributes.of(idTokenData))
         }
 
         return ResponseModel.mapResponseModel(responseMap)

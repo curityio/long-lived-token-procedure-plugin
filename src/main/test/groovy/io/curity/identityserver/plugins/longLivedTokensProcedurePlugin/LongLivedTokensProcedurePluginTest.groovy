@@ -87,7 +87,7 @@ class LongLivedTokensProcedurePluginTest extends Specification {
         configuration.longLivedAccessTokenExpiration >> 2 * 60 * 60
     }
 
-    def "shouldIssueIDTokenWhenClientPropertySetOnClient"() {
+    def "shouldIssueIDTokenWithAtHashWhenClientPropertySetOnClient"() {
         given:
         def plugin = new LongLivedRefreshTokenProcedure(configuration)
 
@@ -97,14 +97,16 @@ class LongLivedTokensProcedurePluginTest extends Specification {
 
         def request = Mock(Request)
         request.getQueryParameterValueOrError("long_lived_token", _) >> null
-
         context.request >> request
+
+        context.accessTokenIssuer.issue(_, _) >> "access_token"
 
         when:
         def response = plugin.run(context)
 
         then:
         response.viewData.containsKey("id_token")
+        1 * idTokenIssuer.atHash("access_token") >> "at_hash"
         1 * idTokenIssuer.issue(_) >> "id_token_value"
     }
 
