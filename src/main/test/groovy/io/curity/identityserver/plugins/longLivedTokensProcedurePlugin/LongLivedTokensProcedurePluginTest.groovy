@@ -80,7 +80,6 @@ class LongLivedTokensProcedurePluginTest extends Specification {
         context.defaultIdTokenData >> idTokenAttributes
         context.defaultAccessTokenData >> accessTokenData
         context.defaultRefreshTokenData >> refreshTokenData
-        context.scope >> ""
         context.refreshTokenIssuer >> refreshTokenIssuer
         context.getDefaultData("id_token") >> idTokenData
 
@@ -94,6 +93,7 @@ class LongLivedTokensProcedurePluginTest extends Specification {
         def client = Mock(OAuthClient)
         client.getTypedProperties() >> ["id_token_on_refresh": "true"]
         context.client >> client
+        context.scope >> "openid"
 
         def request = Mock(Request)
         request.getQueryParameterValueOrError("long_lived_token", _) >> null
@@ -117,10 +117,34 @@ class LongLivedTokensProcedurePluginTest extends Specification {
         def client = Mock(OAuthClient)
         client.getTypedProperties() >> Map.of()
         context.client >> client
+        context.scope >> "openid"
 
         def request = Mock(Request)
         request.getQueryParameterValueOrError("long_lived_token", _) >> null
         context.request >> request
+
+        when:
+        def response = plugin.run(context)
+
+        then:
+        !response.viewData.containsKey("id_token")
+        0 * idTokenIssuer.issue(_)
+    }
+
+    def "shouldNotIssueIDTokenWhenClientPropertySetOnClientButNoOIDCUsed"() {
+        given:
+        def plugin = new LongLivedRefreshTokenProcedure(configuration)
+
+        def client = Mock(OAuthClient)
+        client.getTypedProperties() >> ["id_token_on_refresh": "true"]
+        context.client >> client
+        context.scope >> "read"
+
+        def request = Mock(Request)
+        request.getQueryParameterValueOrError("long_lived_token", _) >> null
+        context.request >> request
+
+        context.accessTokenIssuer.issue(_, _) >> "access_token"
 
         when:
         def response = plugin.run(context)
@@ -137,6 +161,7 @@ class LongLivedTokensProcedurePluginTest extends Specification {
         def client = Mock(OAuthClient)
         client.getTypedProperties() >> Map.of()
         context.client >> client
+        context.scope >> "openid"
 
         def request = Mock(Request)
         request.getQueryParameterValueOrError("long_lived_token", _) >> "true"
@@ -160,6 +185,7 @@ class LongLivedTokensProcedurePluginTest extends Specification {
         def client = Stub(OAuthClient)
         client.getTypedProperties() >> Map.of()
         context.client >> client
+        context.scope >> "openid"
 
         def request = Stub(Request)
         request.getQueryParameterValueOrError("long_lived_token", _) >> null

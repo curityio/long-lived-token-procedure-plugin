@@ -1,3 +1,5 @@
 target/
 *.iml
-
+tests/node_modules
+tests/cypress/reports/*
+plugin/
