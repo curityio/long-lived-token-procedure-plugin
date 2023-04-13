@@ -438,7 +438,7 @@
     </caching-services>
   </facilities>
   <processing xmlns="https://curity.se/ns/conf/base">
-      <license-key>${TEST_LICENSE}</license-key>
+      <license-key>#{TEST_LICENSE}</license-key>
     <procedures>
       <token-procedure-plugin>
         <id>long-lived-tokens</id>
