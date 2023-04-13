@@ -29,7 +29,7 @@ class LongLivedRefreshTokenProcedure(private val configuration: LongLivedTokensP
 {
     override fun run(pluginContext: RefreshTokenProcedurePluginContext): ResponseModel
     {
-        val shouldIssueIDToken = pluginContext.client.typedProperties["id_token_on_refresh"] == "true"
+        val shouldIssueIDToken = isOIDCRequest(pluginContext) && pluginContext.client.typedProperties["id_token_on_refresh"] == "true"
 
         val shouldIssueLongLivedTokenParameter = pluginContext.request.getQueryParameterValueOrError("long_lived_token")
             { throw RuntimeException("More than one value of long_lived_token parameter found.") }
@@ -63,4 +63,6 @@ class LongLivedRefreshTokenProcedure(private val configuration: LongLivedTokensP
 
         return ResponseModel.mapResponseModel(responseMap)
     }
+
+    private fun isOIDCRequest(pluginContext: RefreshTokenProcedurePluginContext) = pluginContext.scope.split(" ").contains("openid")
 }

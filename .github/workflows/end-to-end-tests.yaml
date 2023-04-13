@@ -1,0 +1,50 @@
+name: end-to-end-long-lived-token-procedure-tests
+on:
+  workflow_dispatch:
+    inputs:
+      curity_version:
+        description: 'The Curity Identity Server container tag'
+        required: true
+        default: 'latest'
+jobs:
+  run-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository with plugin
+        uses: actions/checkout@v3
+      - name: Checkout the utils repository
+        uses: actions/checkout@v3
+        with:
+          repository: curityio/github-actions-utilities
+          path: utils
+
+      - name: Setup Java with maven cache
+        if: ${{ !env.ACT }} # Run only in GitHub
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: maven
+
+      - name: Build plugin
+        run: mvn package
+
+      - name: Move plugin jar to volume dir
+        run: mv target/*.jar plugin/
+
+      - name: Start the Curity Identity Server
+        env:
+          TEST_LICENSE: ${{ secrets.idsvr_license }}
+        run: docker run -d --rm -e PASSWORD=Password1 -e TEST_LICENSE=$TEST_LICENSE -v $GITHUB_WORKSPACE/plugin:/opt/idsvr/usr/share/plugins/long-lived-token-procedure -v $GITHUB_WORKSPACE/tests/idsvr/config.xml:/opt/idsvr/etc/init/config.xml -p 6749:6749 -p 8443:8443 curity.azurecr.io/curity/idsvr:${{ inputs.curity_version }}
+
+      - name: Wait for the Curity Identity Server
+        run: ./utils/scripts/healthCheckIdsvr.sh
+        env:
+          ADMIN_USER: admin
+          ADMIN_PASSWORD: Password1
+          WAIT_TIMEOUT: 60
+
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v4
+        with:
+          working-directory: tests

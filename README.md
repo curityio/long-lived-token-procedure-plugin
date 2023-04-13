@@ -22,7 +22,9 @@ For more information about installing plugins, refer to the [curity.io/plugins](
 
 ## Required Dependencies
 
-For a list of the dependencies and their versions, run `mvn dependency:list`. Ensure that all of these are installed in the plugin group; otherwise, they will not be accessible to this plug-in and run-time errors will result.
+For a list of the dependencies and their versions, run `mvn dependency:list`.
+
+If you modify this plugin and add any `runtime` or `compile` scope dependencies, then ensure that all of these are installed in the plugin group. Otherwise, they will not be accessible to this plug-in and run-time errors will result.
 
 ## Configuring the Plugin
 
@@ -45,6 +47,10 @@ You can then change the configuration option for the plugin. Once this is adjust
 ![Edit plugin](/docs/edit-plugin.jpg)
 
 You can manage your token procedure plugins by going to the **System** tab, then choosing **Token Procedure Plugins** from the sidebar menu.
+
+## Running Tests
+
+See [TEST.md](/TEST.md) for options on running the test suite for this plugin.
 
 ## More Information
 
