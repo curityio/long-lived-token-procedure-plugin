@@ -19,7 +19,6 @@ environment variable. Build the plugin jar and move it to a `/plugin` directory,
 ```bash
 export TEST_LICENSE=eyJ...Uuw
 mvn package
-mkdir plugin
 mv target/*.jar plugin/
 docker run -d --rm -e PASSWORD=Password1 -e TEST_LICENSE=$TEST_LICENSE \
 -v $PWD/plugin:/opt/idsvr/usr/share/plugins/long-lived-token-procedure \
