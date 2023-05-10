@@ -203,7 +203,6 @@ class LongLivedTokensProcedurePluginTest extends Specification {
     }
 
     private static def isWithinOneSecond(long actual, long expected) {
-        assert actual <= expected + 1
-        assert actual >= expected - 1
+        return actual <= expected + 1 && actual >= expected - 1
     }
 }

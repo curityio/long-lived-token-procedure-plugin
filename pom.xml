@@ -19,6 +19,7 @@
 
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>
+        <testSourceDirectory>src/main/test</testSourceDirectory>
 
         <plugins>
             <plugin>
