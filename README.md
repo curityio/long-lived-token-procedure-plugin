@@ -28,9 +28,12 @@ If you modify this plugin and add any `runtime` or `compile` scope dependencies,
 
 ## Configuring the Plugin
 
-The plugin has one configuration option:
+The plugin has the following configuration options:
 
-- `Long-Lived Access Token Expiration` - the Time To Live for a long-lived access token, in seconds. Defaults to 4 hours.
+- `Long-Lived Access Token Expiration` — the Time To Live for a long-lived access token, in seconds. Defaults to 4 hours.
+- `Access Token Issuer` — a custom access token issuer. The default issuer is used if none provided.
+- `Refresh Token Issuer` — a custom refresh token issuer. The default issuer is used if none provided.
+- `ID Token Issuer` — a custom ID token issuer. The default issuer is used if none provided.
 
 ## Enabling the Plugin
 
