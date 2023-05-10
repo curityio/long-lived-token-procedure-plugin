@@ -301,6 +301,13 @@
             <expose-metadata>
             </expose-metadata>
           </openid-connect>
+          <token-procedure-plugins>
+              <token-procedure-plugin>
+                <id>long-lived-tokens</id>
+                <Long-lived-Token-on-Refresh xmlns="https://curity.se/ns/ext-conf/Long-lived-Token-on-Refresh">
+                </Long-lived-Token-on-Refresh>
+              </token-procedure-plugin>
+          </token-procedure-plugins>
           <client-store>
             <config-backed>
               <client>
@@ -380,7 +387,7 @@
           <endpoint-kind>oauth-token</endpoint-kind>
           <token-endpoint-procedures>
             <flow>oauth-token-refresh</flow>
-            <token-procedure-plugin>long-lived-tokens</token-procedure-plugin>
+            <token-procedure-plugin xmlns="https://curity.se/ns/conf/profile/oauth">long-lived-tokens</token-procedure-plugin>
           </token-endpoint-procedures>
         </endpoint>
         <endpoint>
@@ -439,13 +446,6 @@
   </facilities>
   <processing xmlns="https://curity.se/ns/conf/base">
       <license-key>#{TEST_LICENSE}</license-key>
-    <procedures>
-      <token-procedure-plugin>
-        <id>long-lived-tokens</id>
-        <Long-lived-Token-on-Refresh xmlns="https://curity.se/ns/ext-conf/Long-lived-Token-on-Refresh">
-        </Long-lived-Token-on-Refresh>
-      </token-procedure-plugin>
-    </procedures>
     <account-managers>
       <account-manager>
         <id>default-account-manager</id>
