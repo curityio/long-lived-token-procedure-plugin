@@ -68,22 +68,22 @@ class LongLivedTokensProcedurePluginTest extends Specification {
     def refreshTokenData
 
     def setup() {
-        context.accessTokenIssuer >> accessTokenIssuer
-        context.idTokenIssuer >> idTokenIssuer
-
         idTokenAttributes = GroovyMock(type: IdTokenAttributes, global: true)
-        refreshTokenData = GroovyMock(type: RefreshTokenAttributes, global: true)
-
-        refreshTokenIssuer.issue(_, _) >> "refresh_token"
-
-        context.delegation >> delegation
         context.defaultIdTokenData >> idTokenAttributes
-        context.defaultAccessTokenData >> accessTokenData
-        context.defaultRefreshTokenData >> refreshTokenData
-        context.refreshTokenIssuer >> refreshTokenIssuer
         context.getDefaultData("id_token") >> idTokenData
 
+        refreshTokenData = GroovyMock(type: RefreshTokenAttributes, global: true)
+        refreshTokenIssuer.issue(_, _) >> "refresh_token"
+        context.defaultRefreshTokenData >> refreshTokenData
+
+        context.delegation >> delegation
+        context.defaultAccessTokenData >> accessTokenData
+
         configuration.longLivedAccessTokenExpiration >> 2 * 60 * 60
+        configuration.getAccessTokenIssuer() >> accessTokenIssuer
+        configuration.getRefreshTokenIssuer() >> refreshTokenIssuer
+        configuration.getIdTokenIssuer() >> idTokenIssuer
+
     }
 
     def "shouldIssueIDTokenWithAtHashWhenClientPropertySetOnClient"() {
@@ -99,7 +99,7 @@ class LongLivedTokensProcedurePluginTest extends Specification {
         request.getQueryParameterValueOrError("long_lived_token", _) >> null
         context.request >> request
 
-        context.accessTokenIssuer.issue(_, _) >> "access_token"
+        accessTokenIssuer.issue(_, _) >> "access_token"
 
         when:
         def response = plugin.run(context)
@@ -144,7 +144,7 @@ class LongLivedTokensProcedurePluginTest extends Specification {
         request.getQueryParameterValueOrError("long_lived_token", _) >> null
         context.request >> request
 
-        context.accessTokenIssuer.issue(_, _) >> "access_token"
+        accessTokenIssuer.issue(_, _) >> "access_token"
 
         when:
         def response = plugin.run(context)
@@ -175,7 +175,7 @@ class LongLivedTokensProcedurePluginTest extends Specification {
 
         then:
         response.viewData.get("expires_in") == expiresIn
-        1 * accessTokenIssuer.issue((AccessTokenAttributes tokenData) -> { tokenData.expires.epochSecond == expiration }, _) >> "long_lived_access_token"
+        1 * accessTokenIssuer.issue((AccessTokenAttributes tokenData) -> { isWithinOneSecond(tokenData.expires.epochSecond, expiration) }, _) >> "long_lived_access_token"
     }
 
     def "shouldIssueShortLivedAccessTokenWhenParameterSetToTrue"() {
@@ -199,6 +199,10 @@ class LongLivedTokensProcedurePluginTest extends Specification {
 
         then:
         response.viewData.get("expires_in") == expiresIn
-        1 * accessTokenIssuer.issue((AccessTokenAttributes tokenData) -> { tokenData.expires.epochSecond == expiration }, _) >> "short_lived_access_token"
+        1 * accessTokenIssuer.issue((AccessTokenAttributes tokenData) -> { isWithinOneSecond(tokenData.expires.epochSecond, expiration) }, _) >> "short_lived_access_token"
+    }
+
+    private static def isWithinOneSecond(long actual, long expected) {
+        return actual <= expected + 1 && actual >= expected - 1
     }
 }

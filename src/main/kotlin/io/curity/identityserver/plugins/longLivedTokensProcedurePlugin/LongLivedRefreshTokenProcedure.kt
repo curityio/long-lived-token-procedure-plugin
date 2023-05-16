@@ -27,6 +27,10 @@ import java.time.Instant
 
 class LongLivedRefreshTokenProcedure(private val configuration: LongLivedTokensProcedurePluginConfig): RefreshTokenProcedure
 {
+    private val accessTokenIssuer = configuration.getAccessTokenIssuer()
+    private val refreshTokenIssuer = configuration.getRefreshTokenIssuer()
+    private val idTokenIssuer = configuration.getIdTokenIssuer()
+
     override fun run(pluginContext: RefreshTokenProcedurePluginContext): ResponseModel
     {
         val shouldIssueIDToken = isOIDCRequest(pluginContext) && pluginContext.client.typedProperties["id_token_on_refresh"] == "true"
@@ -44,17 +48,16 @@ class LongLivedRefreshTokenProcedure(private val configuration: LongLivedTokensP
             accessTokenData
         }
 
-        val accessToken = pluginContext.accessTokenIssuer.issue(finalAccessTokenData, pluginContext.delegation)
+        val accessToken = accessTokenIssuer.issue(finalAccessTokenData, pluginContext.delegation)
         val responseMap = mutableMapOf<String, Any>(
             "scope" to pluginContext.scope,
             "access_token" to accessToken,
             "token_type" to "bearer",
             "expires_in" to Duration.ofSeconds(finalAccessTokenData.expires.epochSecond - Instant.now().epochSecond).seconds,
-            "refresh_token" to pluginContext.refreshTokenIssuer.issue(pluginContext.defaultRefreshTokenData, pluginContext.delegation)
+            "refresh_token" to refreshTokenIssuer.issue(pluginContext.defaultRefreshTokenData, pluginContext.delegation)
         )
 
         if (shouldIssueIDToken) {
-            val idTokenIssuer = pluginContext.idTokenIssuer
             val idTokenData = pluginContext
                 .getDefaultData("id_token")
                 .with(Attribute.of("at_hash", idTokenIssuer.atHash(accessToken)))
